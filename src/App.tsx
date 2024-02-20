@@ -1,34 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { gql, useQuery } from '@apollo/client'
 import './App.css'
+import { useState } from 'react';
+
+const CHARACTERS_CHARACTERS = (page: number) => gql`
+  {
+    characters(page: ${page}) {
+      __typename
+      info {
+        count
+        pages
+        next
+        prev
+      }
+      results {
+        __typename
+        name
+        image
+      }
+    }
+  }
+`
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const [page, setPage] = useState<number>(1)
+
+  const { data, loading, error } = useQuery(CHARACTERS_CHARACTERS(page));
+
+  let pagination = []
+  for(let i = 1; i <= data?.characters?.info.pages; i++) {
+    pagination.push(<button onClick={() => setPage(i)}>{i}</button>)
+  }
+
+  if (loading) return "Loading...";
+  if (error) return <pre>{error.message}</pre>
 
   return (
-    <>
+    <div>
+      <h1>Rick and Morty Characters</h1>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        {pagination}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div>
+        {
+          data?.characters?.results?.map(character => {
+            return (<div>
+              <img src={character.image} alt={character.name} />
+              <p>{character.name}</p>
+            </div>)
+          })
+        }
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      {pagination}
+    </div>
   )
 }
 
