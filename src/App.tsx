@@ -1,66 +1,54 @@
-import { gql, useQuery } from "@apollo/client";
+import {useQuery } from "@apollo/client";
 import "./App.css";
 import { useState } from "react";
-import { Character, Characters } from "./__generated__/graphql";
-
-const CHARACTERS_CHARACTERS = (page: number) => gql`
-  {
-    characters(page: ${page}) {
-      __typename
-      info {
-        count
-        pages
-        next
-        prev
-      }
-      results {
-        __typename
-        name
-        image
-        id
-      }
-    }
-  }
-`;
-
-const CHARACTER_CHARACTER = (id: string) => gql`
-  {
-    character(id: ${id}) {
-      __typename
-      id
-      name
-      status
-      species
-      gender
-      origin {
-        name
-      }
-      location {
-        name
-      }
-      image
-    }
-  }
-`;
-
-type CharactersData = {
-  characters: Characters
-}
-
-type CharacterData = {
-  character: Character
-}
+import { GetCharacterDocument, GetCharactersListDocument } from "./__generated__/graphql";
 
 function App() {
   const [page, setPage] = useState<number>(1);
   const [id, setId] = useState<string>("1");
   const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
-
-  const { data, loading, error } = useQuery<CharactersData>(CHARACTERS_CHARACTERS(page));
-  const {
-    data: dataModal,
-    loading: loadingModal
-  } = useQuery<CharacterData>(CHARACTER_CHARACTER(id));
+  
+  // const GET_ALL_CHARACTERS = gql(`
+  //   query GetCharactersList($page: Int!) {
+  //     characters(page: $page) {
+  //       __typename
+  //       info {
+  //         count
+  //         pages
+  //         next
+  //         prev
+  //       }
+  //       results {
+  //         __typename
+  //         name
+  //         image
+  //         id
+  //       }
+  //     }
+  //   }
+  // `);
+  
+  // const GET_CHARACTER = gql(`
+  //   query GetCharacter($id: ID!) {
+  //     character(id: $id) {
+  //       __typename
+  //       id
+  //       name
+  //       status
+  //       species
+  //       gender
+  //       origin {
+  //         name
+  //       }
+  //       location {
+  //         name
+  //       }
+  //       image
+  //     }
+  //   }
+  // `);
+  const { data, loading, error } = useQuery(GetCharactersListDocument, {variables: {page}});
+  const { data: dataModal, loading: loadingModal } = useQuery(GetCharacterDocument, {variables: {id}});
 
   let pagination = [];
   for (let i = 1; i <= (data?.characters?.info?.pages || 1); i++) {
@@ -122,7 +110,7 @@ function App() {
                   ) : (
                     <div className="modal-infos">
                       {
-                        dataModal?.character.image ? (
+                        dataModal?.character?.image ? (
                           <img
                             src={dataModal?.character?.image}
                             alt={dataModal?.character?.name || ""}
