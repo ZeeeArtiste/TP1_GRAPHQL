@@ -1,6 +1,7 @@
 import { gql, useQuery } from "@apollo/client";
 import "./App.css";
 import { useState } from "react";
+import { Characters } from "./__generated__/graphql";
 
 const CHARACTERS_CHARACTERS = (page: number) => gql`
   {
@@ -42,20 +43,23 @@ const CHARACTER_CHARACTER = (id: string) => gql`
   }
 `;
 
+type CharactersData = {
+  characters: Characters
+}
+
 function App() {
   const [page, setPage] = useState<number>(1);
   const [id, setId] = useState<string>("1");
   const [modalIsOpen, setModalIsOpen] = useState<boolean>(false);
 
-  const { data, loading, error } = useQuery(CHARACTERS_CHARACTERS(page));
+  const { data, loading, error } = useQuery<CharactersData>(CHARACTERS_CHARACTERS(page));
   const {
     data: dataModal,
-    loading: loadingModal,
-    error: errorModal,
+    loading: loadingModal
   } = useQuery(CHARACTER_CHARACTER(id));
 
   let pagination = [];
-  for (let i = 1; i <= data?.characters?.info.pages; i++) {
+  for (let i = 1; i <= (data?.characters?.info?.pages || 1); i++) {
     pagination.push(
       <button key={i} onClick={() => setPage(i)}>
         {i}
@@ -78,9 +82,21 @@ function App() {
       <div>
         {data?.characters?.results?.map((character, index) => {
           return (
-            <div key={index} onClick={() => showInfos(character.id)}>
-              <img src={character.image} alt={character.name} />
-              <p>{character.name}</p>
+            <div key={index} onClick={() => showInfos(character?.id || "1")}>
+              {
+                character?.image ? (
+                  <img src={character.image} alt={character.name || ''} />
+                ) : (
+                  <p>No image available</p>
+                )
+              }
+              {
+                character?.name ? (
+                  <p>{character.name}</p>
+                ) : (
+                  null
+                )
+              }
             </div>
           );
         })}
