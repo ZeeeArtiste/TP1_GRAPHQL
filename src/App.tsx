@@ -1,7 +1,7 @@
 import { gql, useQuery } from "@apollo/client";
 import "./App.css";
 import { useState } from "react";
-import { Characters } from "./__generated__/graphql";
+import { Character, Characters } from "./__generated__/graphql";
 
 const CHARACTERS_CHARACTERS = (page: number) => gql`
   {
@@ -47,6 +47,10 @@ type CharactersData = {
   characters: Characters
 }
 
+type CharacterData = {
+  character: Character
+}
+
 function App() {
   const [page, setPage] = useState<number>(1);
   const [id, setId] = useState<string>("1");
@@ -56,7 +60,7 @@ function App() {
   const {
     data: dataModal,
     loading: loadingModal
-  } = useQuery(CHARACTER_CHARACTER(id));
+  } = useQuery<CharacterData>(CHARACTER_CHARACTER(id));
 
   let pagination = [];
   for (let i = 1; i <= (data?.characters?.info?.pages || 1); i++) {
@@ -117,15 +121,21 @@ function App() {
                     <p>Loading...</p>
                   ) : (
                     <div className="modal-infos">
-                      <img
-                        src={dataModal?.character?.image}
-                        alt={dataModal?.character?.name}
-                      />
+                      {
+                        dataModal?.character.image ? (
+                          <img
+                            src={dataModal?.character?.image}
+                            alt={dataModal?.character?.name || ""}
+                          />
+                        ) : (
+                          <p>No image available</p>
+                        )
+                      }
                       <ul className="list">
                         {dataModal?.character?.name ? (
                           <li>Name: {dataModal?.character?.name}</li>
                         ) : null}
-                        {dataModal?.character?.origin.name ? (
+                        {dataModal?.character?.origin?.name ? (
                           <li>Origin: {dataModal?.character?.origin.name}</li>
                         ) : null}
                         {dataModal?.character?.gender ? (
@@ -134,10 +144,10 @@ function App() {
                         {dataModal?.character?.status ? (
                           <li>Status: {dataModal?.character?.status}</li>
                         ) : null}
-                        {dataModal?.character?.sliecies ? (
-                          <li>Sliecies: {dataModal?.character?.sliecies}</li>
+                        {dataModal?.character?.species ? (
+                          <li>Species: {dataModal?.character?.species}</li>
                         ) : null}
-                        {dataModal?.character?.location.name ? (
+                        {dataModal?.character?.location?.name ? (
                           <li>
                             Location: {dataModal?.character?.location.name}
                           </li>
